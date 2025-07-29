@@ -7,3 +7,4 @@ webdriver-manager
 typing_extensions
 urllib3
 webdriver_manager
+apscheduler
