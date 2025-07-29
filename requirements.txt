@@ -1,0 +1,8 @@
+python-telegram-bot==20.8
+asyncpg
+python-dotenv
+selenium
+requests
+webdriver-manager
+typing_extensions
+urllib3
