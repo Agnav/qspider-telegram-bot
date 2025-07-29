@@ -21,7 +21,7 @@ options.add_argument("--window-size==1920,1080")
 options.add_argument("--start-maximized")  
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-options.binary_location = "/usr/bin/chromium-browser"
+options.binary_location = "/usr/bin/chromium"
 
 driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
 
