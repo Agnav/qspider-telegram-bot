@@ -1,3 +1,4 @@
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 import logging
 import os
@@ -89,6 +90,23 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Cancelled.")
     return ConversationHandler.END
 
+
+async def scheduled_job():
+    bot = Bot(token=BOT_TOKEN)
+    users = await get_all_users()
+    for user in users:
+        chat_id = user["chat_id"]
+        username = user["username"]
+        password = user["password"]
+        try:
+            image_path = scrape(username, password, chat_id)
+            if image_path:
+                async with bot:
+                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
+        except Exception as e:
+            print(f"❌ Failed for {chat_id}: {e}")
+
+
 def main():
     # 🔑 Create and set a new event loop for PTB
     loop = asyncio.new_event_loop()
@@ -107,6 +125,10 @@ def main():
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler("show", show))
     app.add_handler(CommandHandler("img", send))
+
+    scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
+    scheduler.add_job(scheduled_job, "cron", hour=6, minute=0)  # 6:00 AM IST
+    scheduler.start()
 
 
     print("🤖 Bot is running...")
