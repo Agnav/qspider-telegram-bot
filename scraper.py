@@ -13,24 +13,27 @@ import os
 today = date.today()
 
 
+def get_driver():
+    options = webdriver.ChromeOptions()
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+    options.add_argument("--headless=new")  # Run without GUI (optional)
+    options.add_argument("--window-size==1920,1080")  
+    options.add_argument("--start-maximized")  
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    # options.binary_location = "/usr/bin/chromium"
 
-options = webdriver.ChromeOptions()
-options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-options.add_argument("--headless=new")  # Run without GUI (optional)
-options.add_argument("--window-size==1920,1080")  
-options.add_argument("--start-maximized")  
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.binary_location = "/usr/bin/chromium"
+    return webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options
+        )
 
-driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
 
-wait = WebDriverWait(driver, 10)
 url = "https://student.qspiders.com"
 
-import shutil
-print("chromium path:", shutil.which("chromium"))           # Should print /usr/bin/chromium
-print("chromium-browser path:", shutil.which("chromium-browser"))  # Should print None
+# import shutil
+# print("chromium path:", shutil.which("chromium"))           # Should print /usr/bin/chromium
+# print("chromium-browser path:", shutil.which("chromium-browser"))  # Should print None
 
 
 # driver.quit()
@@ -48,7 +51,7 @@ os.makedirs(custom_dir, exist_ok=True)
 
 
 async def scrape(username,password,chat_id):
-    
+    driver = get_driver()
     driver.get(url)
     name_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, name_xpath)))
     name_element.send_keys(username)
@@ -72,8 +75,17 @@ async def scrape(username,password,chat_id):
 
     return path_name
 
+    driver.delete_all_cookies()
+    driver.quit()
+
+
+
+
+
+    
+
     # cookies = driver.get_cookies()
     # print(cookies)
 
-    driver.quit()
+    # driver.quit()
 

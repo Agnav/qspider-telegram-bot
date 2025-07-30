@@ -11,7 +11,7 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-from db import init_db, save_user_credentials,  get_user_credentials
+from db import init_db, save_user_credentials,  get_user_credentials, get_all_users
 from scraper import scrape
 from dotenv import load_dotenv
 from datetime import date
@@ -95,17 +95,18 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def scheduled_job():
     bot = Bot(token=BOT_TOKEN)
     users = await get_all_users()
-    for user in users:
-        chat_id = user["chat_id"]
-        username = user["username"]
-        password = user["password"]
-        try:
-            image_path = scrape(username, password, chat_id)
+    try:
+        for user in users:
+            chat_id = user["chat_id"]
+            username = user["username"]
+            password = user["password"]
+            # try:
+            image_path = await scrape(username, password, chat_id)
             if image_path:
                 async with bot:
-                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
-        except Exception as e:
-            print(f"❌ Failed for {chat_id}: {e}")
+                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"Here is your image for {today} !")
+         except Exception as e:
+             print(f"❌ Failed for {chat_id}: {e}")
 
 
 def main():
@@ -127,8 +128,8 @@ def main():
     app.add_handler(CommandHandler("show", show))
     app.add_handler(CommandHandler("img", send))
 
-    scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
-    scheduler.add_job(scheduled_job, "cron", hour=6, minute=0)  # 6:00 AM IST
+    scheduler = AsyncIOScheduler(event_loop=loop, timezone="Asia/Kolkata")
+    scheduler.add_job(scheduled_job, "cron", hour=14, minute=50)
     scheduler.start()
 
 
