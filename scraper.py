@@ -15,6 +15,7 @@ today = date.today()
 
 def get_driver():
     options = webdriver.ChromeOptions()
+    chrome_options.binary_location = os.getenv("CHROME_BIN", "/usr/bin/chromium")
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
     options.add_argument("--headless=new")  # Run without GUI (optional)
     options.add_argument("--window-size==1920,1080")  
@@ -24,7 +25,7 @@ def get_driver():
     # options.binary_location = "/usr/bin/chromium"
 
     return webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
+            service = Service(os.getenv("CHROMEDRIVER_PATH", "/usr/bin/chromedriver")),
             options=options
         )
 
