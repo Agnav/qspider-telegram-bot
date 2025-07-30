@@ -95,18 +95,18 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def scheduled_job():
     bot = Bot(token=BOT_TOKEN)
     users = await get_all_users()
-    try:
-        for user in users:
-            chat_id = user["chat_id"]
-            username = user["username"]
-            password = user["password"]
-            # try:
-            image_path = await scrape(username, password, chat_id)
-            if image_path:
-                async with bot:
-                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"Here is your image for {today} !")
-         except Exception as e:
-             print(f"❌ Failed for {chat_id}: {e}")
+
+    for user in users:
+        chat_id = user["chat_id"]
+        username = user["username"]
+        password = user["password"]
+        # try:
+        image_path = await scrape(username, password, chat_id)
+        if image_path:
+            async with bot:
+                await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"Here is your image for {today} !")
+        #  except Exception as e:
+        #      print(f"❌ Failed for {chat_id}: {e}")
 
 
 def main():
