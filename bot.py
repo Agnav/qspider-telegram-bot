@@ -11,43 +11,38 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-from db import init_db, save_user_credentials,  get_user_credentials, get_all_users
-from scraper import scrape
+from db import *
+# from scraper import scrape
+from fetch_request import fetch
+from qr import get_qr
 from dotenv import load_dotenv
 from datetime import date
-
-import asyncio
-
-# asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-# logging.basicConfig(level=logging.DEBUG)
-
-
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 today = date.today()
 
-# Conversation states
-USERNAME, PASSWORD = range(2)
+CONTACT, PASSWORD = range(2)
 
 logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    await update.message.reply_text("👋 Welcome! Please enter your username:")
-    return USERNAME
+    await update.message.reply_text("👋 Welcome! Please enter your contact:")
+    return CONTACT
 
-async def get_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["username"] = update.message.text
+async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["contact"] = update.message.text
     await update.message.reply_text("👍 Got it. Now enter your password:")
     return PASSWORD
 
 async def get_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    username = context.user_data["username"]
+    contact = context.user_data["contact"]
     password = update.message.text
+    username,user_id = await fetch(contact,password)
 
-    await save_user_credentials(chat_id, username, password)
+    await save_user_credentials(chat_id, contact, password, username, user_id)
     await update.message.reply_text("✅ Credentials saved! You'll get daily updates at 6 AM.")
     return ConversationHandler.END
 
@@ -55,9 +50,9 @@ async def show(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     creds = await get_user_credentials(chat_id)
     if creds:
-        username, password = creds
+        contact, password = creds
         await update.message.reply_text(
-            f"🔑 Your saved credentials:\n👤 Username: {username}\n🔒 Password: {password}"
+            f"🔑 Your saved credentials:\n👤 Username: {contact}\n🔒 Password: {password}"
         )
     else:
         await update.message.reply_text("⚠️ No credentials found. Use /start to set them.")
@@ -67,20 +62,24 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = Bot(token=BOT_TOKEN)
     chat_id = update.effective_chat.id
     creds = await get_user_credentials(chat_id)
-    if creds:
-        username, password = creds
+    contact,password = creds
+    user_id = await get_user_id(chat_id)
+    if user_id:
         try:
-            image_path = await scrape(username, password, chat_id,)
+            target_string = (f"{user_id}/{today}/student")
+            image_path = await get_qr(target_string)
 
             if image_path:
                 async with bot:
-                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"Here is your image for {today} !")
-                print(f"✅ Sent image to {username}")
+                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
+                    await update.message.reply_text(f"✅ Here is your image for {today} !")
+
+                print(f"✅ Sent image to {contact}")
             else:
-                print(f"⚠️ No image generated for {username}")
+                print(f"⚠️ No image generated for {contact}")
 
         except Exception as e:
-            print(f"❌ Failed to send to {username}: {e}")
+            print(f"❌ Failed to send to {contact}: {e}")
 
     else:
         await update.message.reply_text("❌ No credentials found. Please set them first.")
@@ -98,15 +97,19 @@ async def scheduled_job():
 
     for user in users:
         chat_id = user["chat_id"]
-        username = user["username"]
+        contact = user["contact"]
         password = user["password"]
-        # try:
-        image_path = await scrape(username, password, chat_id)
-        if image_path:
-            async with bot:
-                await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"Here is your image for {today} !")
-        #  except Exception as e:
-        #      print(f"❌ Failed for {chat_id}: {e}")
+        user_id = user["user_id"]
+        try:
+            target_string = (f"{user_id}/{today}/student")
+            image_path = await get_qr(target_string)
+            if image_path:
+                async with bot:
+                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
+                    await update.message.reply_text(f"✅ Here is your image for {today} !")
+
+        except Exception as e:
+            print(f"❌ Failed for {chat_id}: {e}")
 
 
 def main():
@@ -119,14 +122,14 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_username)],
+            CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_contact)],
             PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_password)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler("show", show))
-    app.add_handler(CommandHandler("img", send))
+    app.add_handler(CommandHandler("qr", send))
 
     scheduler = AsyncIOScheduler(event_loop=loop, timezone="Asia/Kolkata")
     scheduler.add_job(scheduled_job, "cron", hour=6, minute=00)
