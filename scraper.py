@@ -28,6 +28,11 @@ driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=opti
 wait = WebDriverWait(driver, 10)
 url = "https://student.qspiders.com"
 
+import shutil
+print("chromium path:", shutil.which("chromium"))           # Should print /usr/bin/chromium
+print("chromium-browser path:", shutil.which("chromium-browser"))  # Should print None
+
+
 # driver.quit()
 
 

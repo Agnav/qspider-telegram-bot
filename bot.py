@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from datetime import date
 
 import asyncio
+
 # asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 # logging.basicConfig(level=logging.DEBUG)
 
