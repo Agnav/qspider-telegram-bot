@@ -129,7 +129,7 @@ def main():
     app.add_handler(CommandHandler("img", send))
 
     scheduler = AsyncIOScheduler(event_loop=loop, timezone="Asia/Kolkata")
-    scheduler.add_job(scheduled_job, "cron", hour=14, minute=50)
+    scheduler.add_job(scheduled_job, "cron", hour=6, minute=00)
     scheduler.start()
 
 
