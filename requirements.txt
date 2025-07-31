@@ -6,3 +6,4 @@ typing_extensions
 urllib3
 apscheduler
 qrcode
+pillow
