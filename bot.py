@@ -17,6 +17,7 @@ from fetch_request import fetch
 from qr import get_qr
 from dotenv import load_dotenv
 from datetime import date
+from zoneinfo import ZoneInfo
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -66,7 +67,7 @@ async def show(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = Bot(token=BOT_TOKEN)
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
     chat_id = update.effective_chat.id
     creds = await get_user_credentials(chat_id)
     contact,password = creds
@@ -99,7 +100,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def scheduled_job():
     bot = Bot(token=BOT_TOKEN)
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
     users = await get_all_users()
 
     for user in users:
