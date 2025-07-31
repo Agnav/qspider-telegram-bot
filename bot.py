@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    await update.message.reply_text("👋 Welcome! Please enter your contact:")
+    await update.message.reply_text("👋 Welcome! Please enter your registered contact number:")
     return CONTACT
 
 async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,11 +40,17 @@ async def get_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     contact = context.user_data["contact"]
     password = update.message.text
-    username,user_id = await fetch(contact,password)
+    username,user_id,status_code = await fetch(contact,password)
+    
+    if status_code == 200:
+        await save_user_credentials(chat_id, contact, password, username, user_id)
+        await update.message.reply_text("✅ Credentials saved! You'll get daily updates at 6 AM.")
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text("❌ Invalid username or password!")
+        await update.message.reply_text("👤 Please enter your registered contact number:")
+        return CONTACT
 
-    await save_user_credentials(chat_id, contact, password, username, user_id)
-    await update.message.reply_text("✅ Credentials saved! You'll get daily updates at 6 AM.")
-    return ConversationHandler.END
 
 async def show(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -83,7 +89,6 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     else:
         await update.message.reply_text("❌ No credentials found. Please set them first.")
-
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):

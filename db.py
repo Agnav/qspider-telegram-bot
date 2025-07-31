@@ -11,38 +11,57 @@ async def init_db():
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             chat_id BIGINT PRIMARY KEY,
+            contact TEXT,
+            password TEXT,
             username TEXT,
-            password TEXT
+            user_id BIGINT
         )
     """)
     await conn.close()
 
-async def save_user_credentials(chat_id: int, username: str, password: str):
+async def save_user_credentials(chat_id: int, contact: str, password: str, username:str, user_id: int):
     conn = await asyncpg.connect(DATABASE_URL)
     await conn.execute("""
-        INSERT INTO users (chat_id, username, password)
-        VALUES ($1, $2, $3)
+        INSERT INTO users (chat_id, contact, password, username, user_id)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (chat_id) DO UPDATE
-        SET username = EXCLUDED.username,
-            password = EXCLUDED.password
-    """, chat_id, username, password)
+        SET contact = EXCLUDED.contact,
+            password = EXCLUDED.password,
+            username = EXCLUDED.username,
+            user_id = EXCLUDED.user_id
+    """, chat_id, contact, password, username, user_id)
     await conn.close()
 
 async def get_user_credentials(chat_id: int):
     conn = await asyncpg.connect(DATABASE_URL)
     try:
         row = await conn.fetchrow(
-            "SELECT username, password FROM users WHERE chat_id = $1",
+            "SELECT contact, password FROM users WHERE chat_id = $1",
             chat_id
         )
         if row:
-            return row["username"], row["password"]
+            return row["contact"], row["password"]
         return None
     finally:
         await conn.close()
 
+
+async def get_user_id(chat_id: int):
+        conn = await asyncpg.connect(DATABASE_URL)
+        try:
+            row = await conn.fetchrow(
+                "SELECT user_id FROM users WHERE chat_id = $1",
+                chat_id
+            )
+            if row:
+                return row["user_id"]
+            return None
+        finally:
+            await conn.close()
+
+
 async def get_all_users():
     conn = await asyncpg.connect(DATABASE_URL)
-    rows = await conn.fetch("SELECT chat_id, username, password FROM users")
+    rows = await conn.fetch("SELECT chat_id, contact, password user_id FROM users")
     await conn.close()
-    return [{'chat_id': r['chat_id'], 'username': r['username'], 'password': r['password']} for r in rows]
+    return [{'chat_id': r['chat_id'], 'contact': r['contact'], 'password': r['password'], 'user_id': r['user_id']} for r in rows]

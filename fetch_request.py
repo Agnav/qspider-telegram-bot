@@ -17,11 +17,12 @@ async def fetch(contact:str, password:str):
     }
 
     response = session.post(url, json=payload, headers=headers)
+    status_code = response.status_code
     response_json = json.loads(response.text)
     user_id = response_json.get("id")
     user_name = response_json.get("name")
 
-    return (user_name,user_id)
+    return (user_name,user_id,status_code)
 
 
 
