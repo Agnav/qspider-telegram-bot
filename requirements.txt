@@ -7,3 +7,6 @@ urllib3
 apscheduler
 qrcode
 pillow
+fastapi
+uvicorn
+
