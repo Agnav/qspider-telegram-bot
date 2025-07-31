@@ -20,7 +20,7 @@ from datetime import date
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-today = date.today()
+
 
 CONTACT, PASSWORD = range(2)
 
@@ -41,7 +41,7 @@ async def get_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     contact = context.user_data["contact"]
     password = update.message.text
     username,user_id,status_code = await fetch(contact,password)
-    
+
     if status_code == 200:
         await save_user_credentials(chat_id, contact, password, username, user_id)
         await update.message.reply_text("✅ Credentials saved! You'll get daily updates at 6 AM.")
@@ -66,6 +66,7 @@ async def show(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = Bot(token=BOT_TOKEN)
+    today = date.today()
     chat_id = update.effective_chat.id
     creds = await get_user_credentials(chat_id)
     contact,password = creds
@@ -79,8 +80,8 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 async with bot:
                     await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
                     await update.message.reply_text(f"✅ Here is your image for {today} !")
-
                 print(f"✅ Sent image to {contact}")
+                os.remove(image_path) 
             else:
                 print(f"⚠️ No image generated for {contact}")
 
@@ -98,6 +99,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def scheduled_job():
     bot = Bot(token=BOT_TOKEN)
+    today = date.today()
     users = await get_all_users()
 
     for user in users:
@@ -112,6 +114,7 @@ async def scheduled_job():
                 async with bot:
                     await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
                     await update.message.reply_text(f"✅ Here is your image for {today} !")
+                os.remove(image_path) 
 
         except Exception as e:
             print(f"❌ Failed for {chat_id}: {e}")
