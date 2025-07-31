@@ -16,7 +16,7 @@ from db import *
 from fetch_request import fetch
 from qr import get_qr
 from dotenv import load_dotenv
-from datetime import date
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 load_dotenv()
