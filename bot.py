@@ -102,23 +102,24 @@ async def scheduled_job():
     bot = Bot(token=BOT_TOKEN)
     today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
     users = await get_all_users()
+    print(users)
 
     for user in users:
         chat_id = user["chat_id"]
         contact = user["contact"]
         password = user["password"]
         user_id = user["user_id"]
-        try:
-            target_string = (f"{user_id}/{today}/student")
-            image_path = await get_qr(target_string)
-            if image_path:
-                async with bot:
-                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"))
-                    await update.message.reply_text(f"✅ Here is your image for {today} !")
-                os.remove(image_path) 
+        #
+        target_string = (f"{user_id}/{today}/student")
+        image_path = await get_qr(target_string)
+        if image_path:
+            async with bot:
+                await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"✅ Here is your image for {today} !" )
+            # await update.message.reply_text(f"✅ Here is your image for {today} !")
+            os.remove(image_path) 
 
-        except Exception as e:
-            print(f"❌ Failed for {chat_id}: {e}")
+        # except Exception as e:
+        #     print(f"❌ Failed for {chat_id}: {e}")
 
 
 def main():
@@ -141,7 +142,7 @@ def main():
     app.add_handler(CommandHandler("qr", send))
 
     scheduler = AsyncIOScheduler(event_loop=loop, timezone="Asia/Kolkata")
-    scheduler.add_job(scheduled_job, "cron", hour=6, minute=00)
+    scheduler.add_job(scheduled_job, "cron", hour=11, minute=10)
     scheduler.start()
 
 

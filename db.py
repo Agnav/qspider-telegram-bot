@@ -62,6 +62,6 @@ async def get_user_id(chat_id: int):
 
 async def get_all_users():
     conn = await asyncpg.connect(DATABASE_URL, ssl="require")
-    rows = await conn.fetch("SELECT chat_id, contact, password user_id FROM users")
+    rows = await conn.fetch("SELECT chat_id, contact, password ,user_id FROM users")
     await conn.close()
     return [{'chat_id': r['chat_id'], 'contact': r['contact'], 'password': r['password'], 'user_id': r['user_id']} for r in rows]
