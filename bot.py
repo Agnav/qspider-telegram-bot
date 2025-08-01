@@ -142,7 +142,7 @@ def main():
     app.add_handler(CommandHandler("qr", send))
 
     scheduler = AsyncIOScheduler(event_loop=loop, timezone="Asia/Kolkata")
-    scheduler.add_job(scheduled_job, "cron", hour=11, minute=10)
+    scheduler.add_job(scheduled_job, "cron", hour=6, minute=00)
     scheduler.start()
 
 
