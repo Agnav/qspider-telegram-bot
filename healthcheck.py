@@ -2,6 +2,6 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-@app.get("/")
+@app.head("/")
 async def root():
-    return {"status": "ok"}
+    return Response(status_code=200)
