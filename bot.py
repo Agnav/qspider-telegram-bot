@@ -109,17 +109,17 @@ async def scheduled_job():
         contact = user["contact"]
         password = user["password"]
         user_id = user["user_id"]
-        #
-        target_string = (f"{user_id}/{today}/student")
-        image_path = await get_qr(target_string)
-        if image_path:
-            async with bot:
-                await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"✅ Here is your image for {today} !" )
-            # await update.message.reply_text(f"✅ Here is your image for {today} !")
-            os.remove(image_path) 
+        try:
+            target_string = (f"{user_id}/{today}/student")
+            image_path = await get_r(target_string)
+            if image_path:
+                async with bot:
+                    await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"✅ Here is your image for {today} !" )
+                # await update.message.reply_text(f"✅ Here is your image for {today} !")
+                os.remove(image_path) 
 
-        # except Exception as e:
-        #     print(f"❌ Failed for {chat_id}: {e}")
+        except Exception as e:
+            print(f"❌ Failed for {chat_id}: {e}")
 
 
 def main():
