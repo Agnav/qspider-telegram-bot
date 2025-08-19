@@ -111,7 +111,7 @@ async def scheduled_job():
         user_id = user["user_id"]
         try:
             target_string = (f"{user_id}/{today}/student")
-            image_path = await get_r(target_string)
+            image_path = await get_qr(target_string)
             if image_path:
                 async with bot:
                     await bot.send_photo(chat_id=chat_id, photo=open(image_path, "rb"), caption=f"✅ Here is your image for {today} !" )
